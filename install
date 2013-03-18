@@ -1,0 +1,345 @@
+#!/bin/bash
+#
+# install - an installer for Minecraft in Debian/Ubuntu/Mint
+#
+#    Copyright (C) 2013 Rodrigo Silva (MestreLion) <linux@rodrigosilva.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>
+
+# ---------------------------------------------------------------
+# User-modifiable stuff...
+
+# App name in menus, Launchers, etc (inside .desktop file)
+name=Minecraft
+
+# executable (also affects dir, icon and .desktop file names)
+exec=minecraft
+
+# install prefix
+prefix=${XDG_DATA_HOME:-"$HOME"/.local}
+
+# Known files - do not edit unless jar icon does not match
+icon_jar=net/minecraft/favicon.png
+
+# Flags and etc...
+url=https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft.jar
+verbose=1
+logout=1
+uninstall=0
+iconsource=jar
+size=0
+
+# ---------------------------------------------------------------
+# Boring UI stuff...
+
+myname="${0##*/}"
+mydir=$(dirname "$(readlink -f "$0")")
+
+fatal()   { [[ "$1" ]] && echo "$myname: error: $1" >&2 ; exit ${2:-1} ; }
+invalid() { echo "$myname: invalid option: $1" >&2 ; usage 1 ; }
+missing() { echo "$myname: missing ${1:+$1 }operand" >&2 ; usage 1 ; }
+message() { ((verbose)) && echo "* $1" ; }
+quit()    { message "Goodbye!" ; exit; }
+
+usage() {
+	cat <<- USAGE
+	Usage: $myname [options] [--|--jar FILE]
+	USAGE
+	if [[ "$1" ]] ; then
+		cat >&2 <<- USAGE
+		Try '$myname --help' for more information.
+		USAGE
+		exit 1
+	fi
+	cat <<USAGE
+
+An installer for Minecraft in Debian/Ubuntu/Mint
+
+Downloads official Minecraft client and properly creates desktop file, icon,
+executable launcher.
+
+Tested with Minecraft 1.5 under Ubuntu 12.04
+
+Options:
+-h|--help  - show this page.
+-q|--quiet - supress informative messages.
+
+--exec=NAME
+	executable name, also used as a prefix for naming the install directory,
+	icon and .desktop files. Default is "$exec"
+
+--prefix=DIR
+	parent of the install directory. Default is "$prefix"
+
+--name=NAME
+	friendly application name, for menu entries. Default is "$name"
+
+--custom-icon=FILE [--icon-size=SIZE]
+	Use the custom icon FILE. If ImageMagik is not installed, icon SIZE
+	(32, 48, 64, etc) must be provided.
+
+--jar=FILE
+	the jar launcher for the game. If none is provided, the official, most
+	recent one will be downloaded from the Minecraft website:
+	$url
+
+--uninstall
+	Uninstall ${name}. Combine with --exec and --prefix to
+	uninstall from a custom install
+
+Copyright (C) 2013 Rodrigo Silva (MestreLion) <linux@rodrigosilva.com>
+License: GPLv3 or later. See <http://www.gnu.org/licenses/gpl.html>
+USAGE
+	exit 0
+}
+
+for arg in "$@"; do case "$arg" in -h|--help) usage ;; esac; done
+while (( $# )); do
+	case "$1" in
+	-h|--help        ) usage                        ;;
+	-q|--quiet       ) verbose=0                    ;;
+	--name=*         ) name="${1#*=}"               ;;
+	--exec=*         ) exec="${1#*=}"               ;;
+	--prefix=*       ) prefix="${1#*=}"             ;;
+	--jar=*          ) jar="${1#*=}"                ;;
+	--icon-size=*    ) size="${1#*=}"               ;;
+	--custom-icon=*  ) icon="${1#*=}"
+	                   iconsource="user"            ;;
+	--name           ) shift ; name="$1"            ;;
+	--exec           ) shift ; exec="$1"            ;;
+	--prefix         ) shift ; prefix="$1"          ;;
+	--jar            ) shift ; jar="$1"             ;;
+	--icon-size      ) shift ; size="$1"            ;;
+	--custom-icon    ) shift ; icon="$1"
+	                   iconsource="user"            ;;
+	--uninstall      ) uninstall=1                  ;;
+	--               ) shift ; jar="$1" ; break     ;;
+	*                ) invalid "$1" ; shift ; break ;;
+	esac
+	shift
+done
+
+# Other arguments      --------------------------------------------
+
+[[ "$name"   ]] || missing "name"
+[[ "$exec"   ]] || missing "exec"
+[[ "$prefix" ]] || missing "prefix"
+
+case "$iconsource" in
+	jar      ) icon="$icon_jar"  ;;
+	user     ) [[ "$icon" ]]    || missing "custom-icon"
+	           [[ -f "$icon" ]] ||
+	           fatal "custom icon file '$icon' not found" ;;
+esac
+
+((verbose)) && v=v
+
+dir=${prefix}/share/${exec}
+execdir=${prefix}/bin
+appdir=${prefix}/share/applications
+
+# Uninstall  ---------------------------------------------
+
+((uninstall)) && {
+
+	msg="Are you sure you want to remove ${exec} install?"
+	read -r -p "$msg (yes,NO): " confirm
+	case "$confirm" in
+	[Yy]*)
+		message "removing desktop file"
+		$sudo rm -rf "$appdir/$exec.desktop"
+		$sudo update-desktop-database "$appdir"
+
+		message "removing icon"
+		for icon in "$dir"/bin/*.{png,xpm} ; do
+			size=${icon##*-}
+			size=${size%%.*}
+			$sudo xdg-icon-resource uninstall --noupdate \
+				--size "$size" "$exec" 2>/dev/null
+		done
+		$sudo xdg-icon-resource forceupdate
+
+		(( system )) && {
+			message "removing manual"
+			$sudo rm -rf "$mandir/$manpage"
+		}
+
+		message "removing executable"
+		$sudo rm -rf "$execdir/$exec"
+
+		message "removing install dir"
+		$sudo rm -rf "$dir"
+
+		message "Successfully uninstalled $name"
+	;;
+	esac
+
+	exit
+}
+
+# ---------------------------------------------------------------
+# Installer begins here (but still boring)
+
+((verbose)) && printf "\n${name^^} INSTALLER\n\n"
+
+((verbose)) && {
+	echo "Install details:"
+	echo "App name     = $name"
+	echo "Executable   = $exec"
+	echo "Icon         = $iconsource: $icon"
+	echo "Install dir  = $dir"
+	echo "Launcher     = ${jar:-$url}"
+	echo "To change these options, see $myname --help"
+	read -r -p "Confirm? (YES,no): " confirm
+	case "$confirm" in
+	[Nn]*) quit
+	esac
+	echo ""
+}
+
+
+type java >/dev/null 2>&1 || {
+	msg="Java is not installed, want to install it now?"
+	msg+=" (requires administrative priviledges)"
+	read -r -p "$msg (yes,NO): " confirm
+	case "$confirm" in
+	[Yy]*) sudo apt-get install default-jre ||
+		fatal "could not install Java JRE" ;;
+	*) message "Please install a java JRE (or JDK) and run me again"
+	   quit;;
+	esac
+}
+
+
+[[ -e "$dir" ]] && {
+	msg="Install directory $dir already exists. Delete it before proceding?"
+	read -r -p "$msg (yes,NO): " confirm
+	case "$confirm" in
+	[Yy]*) message "removing $dir" ;
+	       rm -rf "$dir" || fatal "could not remove $dir" ;;
+	esac
+}
+
+# ---------------------------------------------
+# Some neat helper functions
+
+icon_size()
+{
+	local icon="$1"
+	local size="$2"
+	local filetitle="${icon%.*}"
+
+	((size)) && { echo "$size" ; return ; }
+
+	if type identify >/dev/null 2>&1; then
+		identify -format '%w' "$icon"
+	else
+		if [[ "${filetitle,,}.xpm" == "$icon" ]]; then
+			awk 'NR==3{print $2}' "$icon"
+		else
+			return 1
+		fi
+	fi
+}
+
+addpath()
+{
+	local execdir="$1"
+	local relexecdir=${execdir#$HOME/}
+	message "adding ~/${relexecdir} to your \$PATH in ~/.profile"
+	cat >> "$HOME/.profile" <<-EOF
+
+	# Included by $name install
+	# set PATH so it includes user's ~/${relexecdir} if it exists
+	if [ -d "\$HOME/$relexecdir" ] ; then
+	    PATH="\$HOME/$relexecdir:\$PATH"
+	fi
+	EOF
+}
+
+# ---------------------------------------------
+# Now the fun begins
+
+# Install dir and launcher
+mkdir -p${v} "$dir" ||
+	fatal "could not create install dir $dir"
+
+if [[ "$jar" ]]; then
+	cp -f{v} "$jar" "$dir" ||
+		fatal "could not copy $jar to $dir"
+	jar="$dir/$jar"
+else
+	message "downloading official launcher"
+	jar="$dir/$(basename "$url")"
+	wget -O "$jar" -- "$url" || fatal
+fi
+
+
+# Executable script
+message "creating executable script in $execdir/$exec"
+{ mkdir -p${v} "$execdir" &&
+  cat > "$execdir/$exec" &&
+  chmod +x "$execdir/$exec" ||
+	fatal "could not executable"
+} <<-EXECUTABLE
+	#!/bin/bash
+	java -Xmx1024M -Xms512M -cp "$jar" net.minecraft.LauncherFrame
+EXECUTABLE
+SAVED_IFS=$IFS
+IFS=:
+for pathdir in $PATH ; do
+	[[ "$pathdir" == "$execdir" ]] && { logout=0 ; break ; }
+done
+IFS=$SAVED_IFS
+((logout)) && addpath "$execdir"
+
+
+# Icon
+message "installing icon"
+case "$iconsource" in
+	jar)  unzip -j -d "$dir" "$jar" "$icon" ;;
+	user) cp "$icon" "$dir" ;;
+esac
+icon=$(basename "$icon")
+size=$(icon_size "$dir/$icon" "$size") ||
+	fatal "could not determine icon size. Use --icon-size=SIZE"
+filetitle=${icon%.*}
+fileext=${icon#"$filetitle".}
+newicon="$dir/${exec}-${size}.${fileext}"
+mv "$dir/$icon" "$newicon"
+xdg-icon-resource install --novendor --size "$size" "$newicon" "$exec" ||
+	fatal "could not install icon"
+
+
+# Desktop file
+message "creating desktop file"
+cat > "$dir/$exec.desktop" <<-DESKTOP
+	[Desktop Entry]
+	Version=1.0
+	Type=Application
+	Name=$name
+	Comment=A game about breaking and placing blocks
+	Icon=$exec
+	Exec=$exec
+	Terminal=false
+	StartupNotify=true
+	StartupWMClass=net-minecraft-MinecraftLauncher
+	Categories=Game;
+DESKTOP
+xdg-desktop-menu install --novendor "$dir/$exec.desktop" ||
+	fatal "could not install desktop entry"
+
+
+message "Succesfully installed ${name}!"
+((logout)) && echo "Log out for changes to apply..."
