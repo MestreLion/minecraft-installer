@@ -37,7 +37,7 @@ Long version:
 
 - Show a confirmation screen presenting all settings prior to install
 - Verify if `java` command is available
-- if not offer to apt-install `default-jre` package, which currently points to OpenJDK 6
+- if not offer to apt-get install `default-jre` and `icedtea-plugin` packages, which currently points to OpenJDK 6
 - The jar, icon and desktop files are will be all saved to (or created in):
 
 	`~/.local/share/minecraft`

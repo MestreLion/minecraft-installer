@@ -214,7 +214,7 @@ type java >/dev/null 2>&1 || {
 	msg+=" (requires administrative priviledges)"
 	read -r -p "$msg (yes,NO): " confirm
 	case "$confirm" in
-	[Yy]*) sudo apt-get install default-jre ||
+	[Yy]*) sudo apt-get install default-jre icedtea-plugin ||
 		fatal "could not install Java JRE" ;;
 	*) message "Please install a java JRE (or JDK) and run me again"
 	   quit;;
