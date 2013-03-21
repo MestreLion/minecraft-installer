@@ -17,6 +17,18 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>
 
+#TODO: log stdout and stderr to file when running via .desktop file.
+# Use $TERM to tell apart terminal from .desktop launch (or simply use tee),
+# and save the log in ${XDG_CACHE_HOME:-"$HOME/.cache"} dir. Some rudimentary
+# log rotation (time or size, either delete old or compress) is advised
+
+#FIXME: update uninstall() to match current install, it is currently obsolote
+# and may not work
+
+#FIXME: relexecdir in addpath() assumes XDG_DATA_HOME is within user's $HOME.
+# While this is true for the default ~/.local, and also for any *sane* setting,
+# XDG spec does not require so, and thus we should not rely on that
+
 # ---------------------------------------------------------------
 # User-modifiable stuff...
 

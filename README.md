@@ -99,6 +99,13 @@ The installer is quite flexible and allows customization via command-line option
 
 
 
+Bugs, Wishlist, and Contribuitions
+----------------------------------
+
+Read the code for updated `FIXME`and `TODO` notes
+
+Suggestions and improvements are always welcome. Fork it, hack it, and request
+a pull! Or use the Issues bug-tracking system in github
 
 
 Credits
@@ -120,9 +127,6 @@ And while I am not redistributing anyone else's files along with this project, t
 
 I created this for my personal use only, and it works great for me on my Ubuntu 12.04 Precise Pangoling 64 bits. You milage may vary, so use this at
 own risk.
-
-Suggestions and improvements are always welcome. Fork it, hack it, and request
-a pull!
 
 The copyright and licence notice below applies to this installer, launcher and
 associated files *only*. Files downloaded using this installer, such as the
