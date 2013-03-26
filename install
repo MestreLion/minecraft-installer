@@ -17,10 +17,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>
 
-#TODO: log stdout and stderr to file when running via .desktop file.
-# Use $TERM to tell apart terminal from .desktop launch (or simply use tee),
-# and save the log in ${XDG_CACHE_HOME:-"$HOME/.cache"} dir. Some rudimentary
-# log rotation (time or size, either delete old or compress) is advised
+#TODO: Use 'logrotate' to trim log: create its config in $dir and state in same
+# dir as the log (~/.cache)
 
 #FIXME: update uninstall() to match current install, it is currently obsolote
 # and may not work
@@ -308,7 +306,8 @@ message "creating executable script in $execdir/$exec"
 	fatal "could not executable"
 } <<-EXECUTABLE
 	#!/bin/bash
-	java -Xmx1024M -Xms512M -cp "$jar" net.minecraft.LauncherFrame
+	java -Xmx1024M -Xms512M -cp "$jar" net.minecraft.LauncherFrame 2>&1 |
+	tee -a "\${XDG_CACHE_HOME:-"\$HOME"/.cache}/$exec.log"
 EXECUTABLE
 ifs=$IFS
 IFS=:
