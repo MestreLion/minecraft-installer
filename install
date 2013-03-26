@@ -169,6 +169,16 @@ appdir=${prefix}/share/applications
 	read -r -p "$msg (yes,NO): " confirm
 	case "$confirm" in
 	[Yy]*)
+		userdir="$HOME/.minecraft/"
+		msg="Also delete saved worlds and data ($userdir)?"
+		read -r -p "$msg (yes,NO): " confirm
+		case "$confirm" in
+		[Yy]*)
+			message "removing user data"
+			rm -rf "$userdir"
+		;;
+		esac
+
 		message "removing desktop file"
 		xdg-desktop-menu uninstall "$exec.desktop"
 
