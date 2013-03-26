@@ -305,9 +305,10 @@ fi
 # Executable script
 message "creating executable script in $execdir/$exec"
 { mkdir -p${v} "$execdir" &&
-  cat > "$execdir/$exec" &&
-  chmod +x "$execdir/$exec" ||
-	fatal "could not executable"
+  cat > "$dir/$exec" &&
+  chmod +x "$dir/$exec" &&
+  ln -s "$dir/$exec" "$execdir" ||
+	fatal "could not create executable"
 } <<-EXECUTABLE
 	#!/bin/bash
 	java -Xmx1024M -Xms512M -cp "$jar" net.minecraft.LauncherFrame 2>&1 |
