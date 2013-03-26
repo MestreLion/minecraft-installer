@@ -41,16 +41,18 @@ exec=minecraft
 # install prefix
 prefix=${XDG_DATA_HOME:-"$HOME"/.local}
 
-# Known files - do not edit unless jar icon does not match
-icon_jar=net/minecraft/favicon.png
+# Icon
+iconsource=jar
+icon_jar=net/minecraft/favicon.png  # do not edit unless jar icon does not match
+size=0
+
+# Url for downloadable official launcher
+url=https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft.jar
 
 # Flags and etc...
-url=https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft.jar
 verbose=1
 logout=1
 uninstall=0
-iconsource=jar
-size=0
 
 # ---------------------------------------------------------------
 # Boring UI stuff...
@@ -308,12 +310,12 @@ message "creating executable script in $execdir/$exec"
 	#!/bin/bash
 	java -Xmx1024M -Xms512M -cp "$jar" net.minecraft.LauncherFrame
 EXECUTABLE
-SAVED_IFS=$IFS
+ifs=$IFS
 IFS=:
 for pathdir in $PATH ; do
 	[[ "$pathdir" == "$execdir" ]] && { logout=0 ; break ; }
 done
-IFS=$SAVED_IFS
+IFS=$ifs
 ((logout)) && addpath "$execdir"
 
 
@@ -354,4 +356,4 @@ xdg-desktop-menu install --novendor "$dir/$exec.desktop" ||
 
 
 message "Succesfully installed ${name}!"
-((logout)) && echo "Log out for changes to apply..."
+((logout)) && echo && echo "Log out for changes to apply..."
