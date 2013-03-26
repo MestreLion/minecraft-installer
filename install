@@ -170,30 +170,24 @@ appdir=${prefix}/share/applications
 	case "$confirm" in
 	[Yy]*)
 		message "removing desktop file"
-		$sudo rm -rf "$appdir/$exec.desktop"
-		$sudo update-desktop-database "$appdir"
+		xdg-desktop-menu uninstall "$exec.desktop"
 
 		message "removing icon"
-		for icon in "$dir"/bin/*.{png,xpm} ; do
+		for icon in "$dir"/*.{png,xpm,svg} ; do
 			size=${icon##*-}
 			size=${size%%.*}
-			$sudo xdg-icon-resource uninstall --noupdate \
+			xdg-icon-resource uninstall --noupdate \
 				--size "$size" "$exec" 2>/dev/null
 		done
-		$sudo xdg-icon-resource forceupdate
-
-		(( system )) && {
-			message "removing manual"
-			$sudo rm -rf "$mandir/$manpage"
-		}
+		xdg-icon-resource forceupdate
 
 		message "removing executable"
-		$sudo rm -rf "$execdir/$exec"
+		rm -rf "$execdir/$exec"
 
 		message "removing install dir"
-		$sudo rm -rf "$dir"
+		rm -rf "$dir"
 
-		message "Successfully uninstalled $name"
+		message "Successfully uninstalled ${name}!"
 	;;
 	esac
 
