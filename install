@@ -20,13 +20,6 @@
 #TODO: Use 'logrotate' to trim log: create its config in $dir and state in same
 # dir as the log (~/.cache)
 
-#FIXME: update uninstall() to match current install, it is currently obsolote
-# and may not work
-
-#FIXME: relexecdir in addpath() assumes XDG_DATA_HOME is within user's $HOME.
-# While this is true for the default ~/.local, and also for any *sane* setting,
-# XDG spec does not require so, and thus we should not rely on that
-
 # ---------------------------------------------------------------
 # User-modifiable stuff...
 
@@ -159,23 +152,22 @@ esac
 
 dir=${prefix}/share/${exec}
 execdir=${prefix}/bin
-appdir=${prefix}/share/applications
 
 # Uninstall  ---------------------------------------------
 
 ((uninstall)) && {
 
-	msg="Are you sure you want to remove ${exec} install?"
+	msg="Are you sure you want to uninstall ${exec}?"
 	read -r -p "$msg (yes,NO): " confirm
 	case "$confirm" in
 	[Yy]*)
 		userdir="$HOME/.minecraft/"
-		msg="Also delete saved worlds and data ($userdir)?"
+		msg="Also remove saved worlds and data ($userdir)?"
 		read -r -p "$msg (yes,NO): " confirm
 		case "$confirm" in
 		[Yy]*)
 			message "removing user data"
-			rm -rf "$userdir"
+			rm -rf${v} "$userdir"
 		;;
 		esac
 
@@ -192,10 +184,10 @@ appdir=${prefix}/share/applications
 		xdg-icon-resource forceupdate
 
 		message "removing executable"
-		rm -rf "$execdir/$exec"
+		rm -rf${v} "$execdir/$exec"
 
 		message "removing install dir"
-		rm -rf "$dir"
+		rm -rf${v} "$dir"
 
 		message "Successfully uninstalled ${name}!"
 	;;
@@ -268,6 +260,10 @@ icon_size()
 		fi
 	fi
 }
+
+#FIXME: relexecdir in addpath() assumes XDG_DATA_HOME is within user's $HOME.
+# While this is true for the default ~/.local, and also for any *sane* setting,
+# XDG spec does not require so, and thus we should not rely on that
 
 addpath()
 {
