@@ -307,7 +307,7 @@ message "creating executable script in $execdir/$exec"
 	fatal "could not create executable"
 } <<-EXECUTABLE
 	#!/bin/bash
-	java -Xmx1024M -Xms512M -cp "$jar" net.minecraft.LauncherFrame 2>&1 |
+	java -Xmx4096M -Xms512M -cp "$jar" net.minecraft.LauncherFrame 2>&1 |
 	tee -a "\${XDG_CACHE_HOME:-"\$HOME"/.cache}/$exec.log"
 EXECUTABLE
 ifs=$IFS
