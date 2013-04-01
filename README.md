@@ -53,7 +53,7 @@ Long version:
 	`java -Xmx1024M -Xms512M -cp "$jar" net.minecraft.LauncherFrame`
 
 - If `~/.local/share/bin` is not in user's `PATH` (it usually is not), add a script snippet to prepend it in `~/.profile`. After the install finishes, suggest user to log out and back in so the new `PATH` is applied
-- To avoid a bug in official launcher, which throws an ugly `java.io.FileNotFound` when `~/.minecraft/lastlogin` does not exist, create a dummy lastlogin file with a blank password and `user@example.com` as username. For more info about how such file is created, see the `util` dir.
+- To avoid a bug in official launcher, which throws an ugly `java.io.FileNotFound` when `~/.minecraft/lastlogin` does not exist, create a dummy lastlogin file with a blank username and password. For more info about how such file is created, see the `util` dir.
 
 Options
 -------

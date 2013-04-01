@@ -360,8 +360,7 @@ lastlogin="$HOME/.minecraft/lastlogin"
 if ! [[ -f "$HOME/.minecraft" ]]; then
 	message "creating dummy $lastlogin file"
 	mkdir -p${v} "$(dirname "$lastlogin")"
-	echo 6a2f1fa8c03c97e75a18e79fcc8626ff1c5e85e541515b88 |
-	xxd -p -r - "$lastlogin"
+	xxd -p -r - "$lastlogin" <<< b4135a0f49ea4b99
 fi
 
 
