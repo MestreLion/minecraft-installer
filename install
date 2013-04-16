@@ -30,7 +30,7 @@ name=Minecraft
 exec=minecraft
 
 # install prefix
-prefix=${XDG_DATA_HOME:-"$HOME"/.local}
+prefix=${XDG_DATA_HOME:-"$HOME"/.local/share}
 
 # Icon
 iconsource=jar
@@ -150,8 +150,8 @@ esac
 
 ((verbose)) && v=v
 
-dir=${prefix}/share/${exec}
-execdir=${prefix}/bin
+dir=${prefix}/${exec}
+execdir="$HOME"/.local/bin
 
 # Uninstall  ---------------------------------------------
 
