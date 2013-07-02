@@ -348,7 +348,7 @@ cat > "$dir/$exec.desktop" <<-DESKTOP
 	Exec=$exec
 	Terminal=false
 	StartupNotify=true
-	StartupWMClass=net-minecraft-MinecraftLauncher
+	StartupWMClass=net-minecraft-LauncherFrame
 	Categories=Game;
 DESKTOP
 xdg-desktop-menu install --novendor "$dir/$exec.desktop" ||
