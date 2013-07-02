@@ -38,7 +38,12 @@ icon_jar=net/minecraft/favicon.png  # do not edit unless jar icon does not match
 size=0
 
 # Url for downloadable official launcher
-url=https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft.jar
+url=https://s3.amazonaws.com/Minecraft.Download/launcher/Minecraft.jar  # 1.6.1 onwards
+url=https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft.jar   # prior to 1.6
+
+# Startup class (window ID)
+windowid=net-minecraft-bootstrap-Bootstrap  # 1.6.1 onwards
+windowid=net-minecraft-MinecraftLauncher    # prior to 1.6
 
 # Flags and etc...
 verbose=1
@@ -307,7 +312,7 @@ message "creating executable script in $execdir/$exec"
 	fatal "could not create executable"
 } <<-EXECUTABLE
 	#!/bin/bash
-	java -Xmx4096M -Xms512M -cp "$jar" net.minecraft.LauncherFrame 2>&1 |
+	java -Xmx4096M -Xms512M -jar "$jar" 2>&1 |
 	tee -a "\${XDG_CACHE_HOME:-"\$HOME"/.cache}/$exec.log"
 EXECUTABLE
 ifs=$IFS
@@ -348,9 +353,10 @@ cat > "$dir/$exec.desktop" <<-DESKTOP
 	Exec=$exec
 	Terminal=false
 	StartupNotify=true
-	StartupWMClass=net-minecraft-LauncherFrame
+	StartupWMClass=$windowid
 	Categories=Game;
 DESKTOP
+
 xdg-desktop-menu install --novendor "$dir/$exec.desktop" ||
 	fatal "could not install desktop entry"
 
